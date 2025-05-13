@@ -15,6 +15,7 @@ class Workspace extends Model
 
     protected $fillable = [
         'name', 
+        'description',
         'userId',
         'is_active', 
         'is_delete',

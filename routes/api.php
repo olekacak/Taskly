@@ -22,30 +22,31 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('/user/postUser', [AuthController::class, 'postUser']);
-Route::post('/login', [AuthController::class, 'login']);
+
+//Route::post('/login', [AuthController::class, 'login']);
+
 Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->post('/user/getUser', [AuthController::class, 'getUser']);
 
+
+
 Route::middleware('auth:sanctum')->post('/workspace/postWorkspace', [WorkspaceController::class, 'postWorkspace']);
 
-Route::middleware('auth:sanctum')->get('/workspace/{workspaceId?}', [WorkspaceController::class, 'getWorkspace']);
+// Route::middleware('auth:sanctum')->get('/workspace/{workspaceId?}', [WorkspaceController::class, 'getWorkspace']);
 
-// // dynamic parameter
-// Route::middleware('auth:sanctum')->get('/workspace/{workspaceId}', [WorkspaceController::class, 'getById']);
-// Route::middleware('auth:sanctum')->get('/workspace', [WorkspaceController::class, 'getAll']);
+// // // dynamic parameter
+// // Route::middleware('auth:sanctum')->get('/workspace/{workspaceId}', [WorkspaceController::class, 'getById']);
+// // Route::middleware('auth:sanctum')->get('/workspace', [WorkspaceController::class, 'getAll']);
 
-Route::middleware('auth:sanctum')->delete('/workspace/{workspaceId?}', [WorkspaceController::class, 'deleteWorkspace']);
+// Route::middleware('auth:sanctum')->delete('/workspace/{workspaceId?}', [WorkspaceController::class, 'deleteWorkspace']);
 
-Route::middleware('auth:sanctum')->post('/task/postTask', [TaskController::class, 'postTask']);
+// Route::middleware('auth:sanctum')->post('/task/postTask', [TaskController::class, 'postTask']);
 
-Route::middleware('auth:sanctum')->get('/task/getTask/{taskId?}', [TaskController::class, 'getTask']);
+// Route::middleware('auth:sanctum')->get('/task/getTask/{taskId?}', [TaskController::class, 'getTask']);
 
-Route::middleware('auth:sanctum')->post('/complete/postComplete', [TaskController::class, 'postComplete']);
+// Route::middleware('auth:sanctum')->post('/complete/postComplete', [TaskController::class, 'postComplete']);
 
-Route::middleware('auth:sanctum')->delete('/task/delete/{taskId}', [TaskController::class, 'deleteTask']);
-
-
-
+// Route::middleware('auth:sanctum')->delete('/task/delete/{taskId}', [TaskController::class, 'deleteTask']);
 
 

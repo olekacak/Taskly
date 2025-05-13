@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('workspace', function (Blueprint $table) {
             $table->id('workspaceId');
             $table->string('name');
+            $table->string('description')->nullable();
             $table->unsignedBigInteger('userId');
             $table->foreign('userId')->references('userId')->on('user')->onDelete('cascade');
             $table->boolean('is_active');

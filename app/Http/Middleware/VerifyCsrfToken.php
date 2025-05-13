@@ -16,5 +16,12 @@ class VerifyCsrfToken extends Middleware
         'register',  // Add other routes here as needed
         'login',
         'logout',
+        '/user/postUser',
+        '/user/getUser',
+        '/workspace/postWorkspace',
+        '/workspace/deleteWorkspace/*',
+        '/task/postTask',
+        '/task/postComplete',
+        '/task/deleteTask/*'
     ];
 }

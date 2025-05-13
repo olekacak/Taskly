@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
+    public function taskPage()
+    {
+        return view('task');
+    }
+
     public function postTask(Request $request)
     {
         $request->validate([
@@ -25,9 +30,9 @@ class TaskController extends Controller
             if ($request->has('taskId')) {
                 // Update task
                 $task = Task::where('taskId', $request->taskId)
-                            ->where('is_active', true)
-                            ->where('status', null)
-                            ->first();
+                    ->where('is_active', true)
+                    ->where('status', null)
+                    ->first();
 
                 if (!$task) {
                     return response()->json(['message' => 'Task not found'], 404);
@@ -69,24 +74,44 @@ class TaskController extends Controller
     }
 
     // Get all active tasks or a specific task
-    public function getTask(Request $request, $taskId = null)
+    public function getTask(Request $request)
     {
         try {
-            if ($taskId) {
-               
+            if ($request->has('taskId') && $request->input('tasId') !== null) {  
+                $taskId = $request->input('taskId');
+
                 // Get specific active task
                 $task = Task::where('taskId', $taskId)
-                            ->where('is_active', true)
-                            ->first();
+                    // ->where('is_active', true)
+                    // ->whereNull('status')
+                    ->first();
 
                 if (!$task) {
                     return response()->json(['message' => 'Task not found or inactive'], 404);
                 }
 
                 return response()->json($task);
+            }
+            // If workspaceId is provided, fetch tasks by workspaceId
+            elseif ($request->has('workspaceId')) {
+                $workspaceId = $request->input('workspaceId');
+
+                // Get active tasks by workspaceId
+                $tasks = Task::where('workspaceId', $workspaceId)
+                    // ->where('is_active', true)
+                    // ->whereNull('status')
+                    ->get();
+
+                if ($tasks->isEmpty()) {
+                    return response()->json(['message' => 'No tasks found for the given workspaceId'], 404);
+                }
+
+                return response()->json($tasks);
             } else {
                 // Get all active tasks
-                $tasks = Task::where('is_active', true)->get();
+                $tasks = Task::where('is_active', true,)
+                    ->whereNull('status')
+                    ->get();
                 return response()->json($tasks);
             }
         } catch (\Exception $e) {
@@ -104,10 +129,10 @@ class TaskController extends Controller
 
         try {
             $task = Task::where('taskId', $request->taskId)
-                        ->where('is_active', 1)
-                        ->where('is_delete', 0)
-                        ->whereNull('status') // Only allow update if status is NULL
-                        ->first();
+                ->where('is_active', 1)
+                ->where('is_delete', 0)
+                ->whereNull('status') // Only allow update if status is NULL
+                ->first();
 
             if (!$task) {
                 return response()->json(['message' => 'Task not found, inactive, deleted, or already completed'], 404);
@@ -121,7 +146,6 @@ class TaskController extends Controller
             ]);
 
             return response()->json(['message' => 'Task status updated successfully', 'task' => $task]);
-
         } catch (\Exception $e) {
             Log::error('Task status update error: ' . $e->getMessage());
             return response()->json(['message' => 'Server error'], 500);
@@ -133,10 +157,10 @@ class TaskController extends Controller
     {
         try {
             $task = Task::where('taskId', $taskId)
-                        ->where('is_active', true)
-                        ->where('is_delete', false)
-                        ->whereNull('status')
-                        ->first();
+                ->where('is_active', true)
+                ->where('is_delete', false)
+                ->whereNull('status')
+                ->first();
 
             if (!$task) {
                 return response()->json(['message' => 'Task not found or already deleted'], 404);

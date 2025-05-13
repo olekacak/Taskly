@@ -11,16 +11,44 @@ use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
+    public function showRegister()
+    {
+        return view('register'); // resources/views/auth/register.blade.php
+    }
+
+    public function showLogPage()
+    {
+        return view('login'); // resources/views/auth/login.blade.php
+    }
+
+    public function homePage()
+    {
+        return view('home'); // resources/views/auth/login.blade.php
+    }
+
+    public function profilePage()
+    {
+        return view('profile'); // resources/views/auth/login.blade.php
+    }
+
     // Register
-   public function postUser(Request $request)
+    public function postUser(Request $request)
     {
         Log::info("User create/update request received");
 
         $isUpdate = $request->has('userId');
 
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $imagePath = $image->storeAs('upload/image', $imageName, 'public');
+        }
+
         // Common validation rules
         $rules = [
             'name'     => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'username' => 'required|string|max:255|unique:user,username',
             'email'    => 'required|string|email|max:255|unique:user,email',
         ];
@@ -41,8 +69,8 @@ class AuthController extends Controller
             if ($isUpdate) {
                 // Fetch the user
                 $user = User::where('userId', $request->userId)
-                            ->where('is_active', true)
-                            ->first();
+                    ->where('is_active', true)
+                    ->first();
 
                 if (!$user) {
                     return response()->json(['message' => 'User not found or inactive'], 404);
@@ -51,6 +79,7 @@ class AuthController extends Controller
                 // Update fields
                 $user->update([
                     'name'          => $request->name,
+                    'image'         => $imagePath ?? $user->image,
                     'username'      => $request->username,
                     'email'         => $request->email,
                     'modified_date' => Carbon::now(),
@@ -61,6 +90,7 @@ class AuthController extends Controller
                 // Create new user
                 $user = User::create([
                     'name'          => $request->name,
+                    'image'         => $imagePath,
                     'username'      => $request->username,
                     'email'         => $request->email,
                     'password'      => Hash::make($request->password),
@@ -77,6 +107,7 @@ class AuthController extends Controller
                     'message'      => 'User created successfully',
                     'access_token' => $token,
                     'token_type'   => 'Bearer',
+                    'user'         => $user,
                 ], 201);
             }
         } catch (\Exception $e) {
@@ -111,10 +142,11 @@ class AuthController extends Controller
 
             // Generate token
             $token = $user->createToken('auth_token')->plainTextToken;
-            
+
             // Return login success with token
             $loginResponse = [
                 'login_type'   => $loginField . ' : ' . $request->login,
+                'userData'   => $user,
                 'message'      => 'Login successful',
                 'access_token' => $token,
                 'token_type'   => 'Bearer',
@@ -122,43 +154,51 @@ class AuthController extends Controller
 
             // Fetch the workspaces for the user
             $workspace = \App\Models\Workspace::where('userId', $user->userId)
-                                                ->where('is_active', true)
-                                                ->get();
+                ->where('is_active', true)
+                ->get();
 
             // Check if workspaces are found
             if ($workspace->isEmpty()) {
-                $workspaceResponse = ['message' => 'No active workspaces found for the user'];
+                $workspaceResponse = [
+                    'workspaces' => [],
+                    'message' => 'No active workspaces found for the user'
+                ];
             } else {
                 $workspacesWithTask = $workspace->map(function ($workspace) {
-                // Fetch tasks that are still marked as active and not deleted
-                $task = $workspace->tasks()
-                                ->where('is_active', 1)
-                                ->where('is_delete', 0)
-                                ->whereNull('status')
-                                ->get();
+                    // Fetch tasks that are still marked as active and not deleted
+                    $task = $workspace->tasks()
+                        ->where('is_active', 1)
+                        ->where('is_delete', 0)
+                        ->whereNull('status')
+                        ->get();
 
-                $updatedTask = $task->map(function ($task) {
-                    if (now()->greaterThanOrEqualTo($task->deadline)) {
-                        // Update task to "finished"
-                        $task->is_active = false;
-                        $task->is_delete = true;
-                        $task->status = false;
-                        $task->deleted_date = $task->deadline;
-                        $task->save();
-                    }
-                    return $task;
+                    $updatedTask = $task->map(function ($task) {
+                        if (now()->greaterThanOrEqualTo($task->deadline)) {
+                            // Update task to "finished"
+                            $task->is_active = false;
+                            $task->is_delete = true;
+                            $task->status = false;
+                            $task->deleted_date = $task->deadline;
+                            $task->save();
+                        }
+                        return $task;
+                    });
+
+                    $workspace->task = $updatedTask;
+                    return $workspace;
                 });
 
-                $workspace->task = $updatedTask;
-                return $workspace;
-            });
-
-            $workspaceResponse = ['workspaces' => $workspacesWithTask];
-        }
+                $workspaceResponse = [
+                    'workspaces' => $workspacesWithTask,
+                    'message' => 'Active workspaces retrieved successfully'
+                ];
+            }
 
             // Return the login response first
-            return response()->json(array_merge($loginResponse, $workspaceResponse));
-            
+            return response()->json(array_merge($loginResponse, $workspaceResponse),200);
+            //return view('login', array_merge($loginResponse, $workspaceResponse));
+
+
         } catch (\Exception $e) {
             Log::error('Login error: ' . $e->getMessage());
             return response()->json(['message' => 'Server error'], 500);
@@ -175,8 +215,8 @@ class AuthController extends Controller
 
                 // Find user by userId and check if user is active
                 $user = User::where('userId', $userId)
-                            ->where('is_active', true)
-                            ->first();
+                    ->where('is_active', true)
+                    ->first();
 
                 if (!$user) {
                     return response()->json(['message' => 'User not found or inactive'], 404);
@@ -198,7 +238,6 @@ class AuthController extends Controller
             return response()->json(['error' => 'Server error'], 500);
         }
     }
-
 
     // Logout Method
     public function logout(Request $request)

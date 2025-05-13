@@ -1,0 +1,43 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.form-bg-image {
+  background: url('/assets/img/signin.svg') no-repeat center center;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-box {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+  max-width: 500px;
+  width: 100%;
+}
+/* Fix layout for avatar preview container */
+.avatar-preview-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%; /* Ensure the container takes full width available */
+    height: 50px; /* Adjust the container height to your liking */
+}
+
+/* Avatar preview styles */
+.avatar-preview {
+    width: 100px;  /* Change the width as per your preference */
+    height: 100px; /* Keep the height proportional */
+    cursor: pointer;
+    border-radius: 50%;
+    object-fit: cover; /* Ensures the image maintains its aspect ratio and is not distorted */
+    transition: transform 0.2s ease-in-out; /* Adds smooth scaling effect on hover */
+}
+
+.avatar-preview:hover {
+    transform: scale(1.05); /* Slight scale effect on hover */
+}
